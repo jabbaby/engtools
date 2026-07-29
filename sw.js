@@ -1,6 +1,6 @@
-// SiteCheck RC — service worker
+// Concrete Companion — service worker
 // Bumps CACHE_NAME to force refresh of cached assets on next deploy.
-const CACHE_NAME = 'sitecheck-rc-v1';
+const CACHE_NAME = 'concrete-companion-v2';
 const ASSETS = [
   './',
   './index.html',

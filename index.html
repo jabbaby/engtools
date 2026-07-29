@@ -3,14 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#121416">
+<meta name="theme-color" content="#F6F4EF">
 <meta name="description" content="Reinforcement and concrete inspection reference tool to AS 3600:2018">
-<title>SiteCheck RC</title>
+<title>Concrete Companion v1.0</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
 :root{
+  /* light theme (default) */
+  --bg:#F6F4EF;
+  --surface:#FFFFFF;
+  --surface-2:#F0EDE6;
+  --surface-3:#E7E2D8;
+  --border:#DBD5C8;
+  --border-soft:#E8E3D9;
+  --text:#181A1C;
+  --text-dim:#565C62;
+  --text-faint:#868D94;
+  --amber-fill:#F5A623;
+  --amber-ink:#9A5A0E;
+  --amber-tint:rgba(154,90,14,0.12);
+  --amber-dim:#D9B26B;
+  --pass:#1F8F5E;
+  --fail:#C93338;
+  --hold:#A6790A;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+[data-theme="dark"]{
   --bg:#121416;
   --surface:#1A1D20;
   --surface-2:#20242A;
@@ -20,16 +43,15 @@
   --text:#F2F0EB;
   --text-dim:#A7AFB8;
   --text-faint:#6E7680;
-  --amber:#F5A623;
+  --amber-fill:#F5A623;
+  --amber-ink:#F5A623;
+  --amber-tint:rgba(245,166,35,0.1);
   --amber-dim:#8A5E1E;
   --pass:#3FB27F;
   --fail:#E5484D;
   --hold:#E8B93B;
-  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-top: env(safe-area-inset-top, 0px);
 }
+body{transition:background-color .15s, color .15s;}
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
 body{
@@ -45,9 +67,15 @@ header.top{
   border-bottom:1px solid var(--border-soft);
   flex-shrink:0;
 }
-.brand{display:flex; align-items:center; gap:10px;}
-.brand .mark{width:30px; height:30px; border-radius:50%; border:2.5px solid var(--amber); position:relative; flex-shrink:0;}
-.brand .mark::after{content:""; position:absolute; inset:9px; background:var(--amber); border-radius:50%;}
+.brand{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.brand .id{display:flex; align-items:center; gap:10px;}
+.theme-toggle{
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--border); background:var(--surface);
+  color:var(--text-dim); display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.theme-toggle svg{width:18px; height:18px;}
+.brand .mark{width:30px; height:30px; border-radius:50%; border:2.5px solid var(--amber-fill); position:relative; flex-shrink:0;}
+.brand .mark::after{content:""; position:absolute; inset:9px; background:var(--amber-fill); border-radius:50%;}
 .brand h1{font-size:17px; margin:0; font-weight:700; letter-spacing:0.2px;}
 .brand .sub{font-size:11px; color:var(--text-faint); margin-top:1px; font-family:var(--mono); letter-spacing:0.3px;}
 .module-switch{display:flex; gap:6px; margin-top:12px;}
@@ -56,7 +84,7 @@ header.top{
   background:var(--surface); color:var(--text-dim); font-size:13px; font-weight:600;
   font-family:var(--sans); cursor:pointer;
 }
-.module-switch button.active{background:var(--amber); border-color:var(--amber); color:#1A1200;}
+.module-switch button.active{background:var(--amber-fill); border-color:var(--amber-fill); color:#1A1200;}
 
 /* ---------- Sub nav (chips) ---------- */
 .subnav{display:flex; gap:8px; overflow-x:auto; padding:12px 16px 0; flex-shrink:0; scrollbar-width:none;}
@@ -65,7 +93,7 @@ header.top{
   white-space:nowrap; padding:9px 14px; border-radius:999px; border:1px solid var(--border);
   background:var(--surface); color:var(--text-dim); font-size:13px; font-weight:600; font-family:var(--sans);
 }
-.subnav button.active{background:var(--surface-3); border-color:var(--amber); color:var(--amber);}
+.subnav button.active{background:var(--surface-3); border-color:var(--amber-ink); color:var(--amber-ink);}
 
 /* ---------- Main content ---------- */
 main{flex:1; overflow-y:auto; padding:16px 16px calc(24px + var(--safe-bottom)); -webkit-overflow-scrolling:touch;}
@@ -75,7 +103,7 @@ main{flex:1; overflow-y:auto; padding:16px 16px calc(24px + var(--safe-bottom));
 
 .card{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:16px; margin-bottom:14px;}
 .card h2{font-size:15px; margin:0 0 4px; font-weight:700;}
-.card .clause{font-family:var(--mono); font-size:11px; color:var(--amber); background:rgba(245,166,35,0.1); padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:10px;}
+.card .clause{font-family:var(--mono); font-size:11px; color:var(--amber-ink); background:var(--amber-tint); padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:10px;}
 .card p.desc{font-size:13px; color:var(--text-dim); line-height:1.5; margin:0 0 12px;}
 
 /* form controls */
@@ -89,10 +117,10 @@ select{font-family:var(--sans); appearance:none; background-image:url("data:imag
 .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .seg{display:flex; gap:6px; margin-top:6px;}
 .seg button{flex:1; padding:12px 6px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); font-size:13px; font-weight:600;}
-.seg button.on{background:var(--amber); border-color:var(--amber); color:#1A1200;}
+.seg button.on{background:var(--amber-fill); border-color:var(--amber-fill); color:#1A1200;}
 
 .result{margin-top:16px; padding:14px; border-radius:12px; background:var(--surface-2); border:1px solid var(--border);}
-.result .big{font-family:var(--mono); font-size:26px; font-weight:700; color:var(--amber); line-height:1.15;}
+.result .big{font-family:var(--mono); font-size:26px; font-weight:700; color:var(--amber-ink); line-height:1.15;}
 .result .label{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;}
 .result .verdict{margin-top:10px; font-weight:700; font-size:14px; padding:8px 10px; border-radius:8px;}
 .verdict.ok{background:rgba(63,178,127,0.15); color:var(--pass);}
@@ -105,13 +133,13 @@ th,td{padding:8px 6px; text-align:right; border-bottom:1px solid var(--border-so
 th:first-child,td:first-child{text-align:left; font-family:var(--sans); font-weight:600;}
 th{color:var(--text-faint); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.3px;}
 .table-wrap{overflow-x:auto; margin:0 -4px;}
-tr.hi td{color:var(--amber); font-weight:700;}
+tr.hi td{color:var(--amber-ink); font-weight:700;}
 
 .disclaimer{
   display:flex; gap:10px; align-items:flex-start; padding:12px 14px; background:rgba(245,166,35,0.08);
   border:1px solid var(--amber-dim); border-radius:12px; margin-bottom:16px; font-size:12px; color:var(--text-dim); line-height:1.5;
 }
-.disclaimer .ic{color:var(--amber); font-weight:800; font-size:16px; flex-shrink:0;}
+.disclaimer .ic{color:var(--amber-ink); font-weight:800; font-size:16px; flex-shrink:0;}
 
 .accordion{border:1px solid var(--border-soft); border-radius:12px; margin-bottom:10px; overflow:hidden; background:var(--surface);}
 .accordion .head{padding:14px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;}
@@ -121,7 +149,7 @@ tr.hi td{color:var(--amber); font-weight:700;}
 .accordion .body{display:none; padding:0 16px 16px; font-size:13px; color:var(--text-dim); line-height:1.6;}
 .accordion.open .body{display:block;}
 .accordion .body b{color:var(--text); font-weight:700;}
-.accordion .body .tag{display:inline-block; font-family:var(--mono); font-size:10px; color:var(--amber); background:rgba(245,166,35,0.1); padding:2px 6px; border-radius:5px; margin-bottom:6px;}
+.accordion .body .tag{display:inline-block; font-family:var(--mono); font-size:10px; color:var(--amber-ink); background:var(--amber-tint); padding:2px 6px; border-radius:5px; margin-bottom:6px;}
 
 /* checklist */
 .chk-group{margin-bottom:18px;}
@@ -144,7 +172,7 @@ tr.hi td{color:var(--amber); font-weight:700;}
 .chk-summary .pill.pass .n{color:var(--pass);} .chk-summary .pill.fail .n{color:var(--fail);} .chk-summary .pill.hold .n{color:var(--hold);}
 .btnrow{display:flex; gap:8px; margin-top:4px;}
 .btn{flex:1; padding:13px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-weight:700; font-size:13px;}
-.btn.primary{background:var(--amber); border-color:var(--amber); color:#1A1200;}
+.btn.primary{background:var(--amber-fill); border-color:var(--amber-fill); color:#1A1200;}
 .btn.danger{color:var(--fail); border-color:var(--fail);}
 
 /* bottom tab bar */
@@ -156,7 +184,7 @@ nav.tabs button{
   flex:1; background:none; border:none; padding:10px 4px calc(8px); color:var(--text-faint);
   display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; font-weight:600; font-family:var(--sans);
 }
-nav.tabs button.active{color:var(--amber);}
+nav.tabs button.active{color:var(--amber-ink);}
 nav.tabs svg{width:22px; height:22px;}
 
 .hint{font-size:11px; color:var(--text-faint); margin-top:8px; line-height:1.5;}
@@ -170,11 +198,14 @@ nav.tabs svg{width:22px; height:22px;}
 
   <header class="top">
     <div class="brand">
-      <div class="mark"></div>
-      <div>
-        <h1>SiteCheck RC</h1>
-        <div class="sub">AS 3600:2018 · FIELD REFERENCE</div>
+      <div class="id">
+        <div class="mark"></div>
+        <div>
+          <h1>Concrete Companion</h1>
+          <div class="sub">V1.0 · AS 3600:2018 FIELD REFERENCE</div>
+        </div>
       </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme"></button>
     </div>
     <div class="module-switch" id="moduleSwitch">
       <button data-module="reo" class="active">Reinforcement</button>
@@ -533,35 +564,149 @@ function renderReoTables(main){
 
 /* ---------- Reinforcement: Ast check ---------- */
 function renderAstCalc(main){
-  main.appendChild(disclaimer('Confirms provided reinforcement against a design Ast you enter. Does not substitute for the structural drawings/computations — use the value from the approved design.'));
+  main.appendChild(disclaimer('Confirms provided reinforcement against a design requirement. Does not substitute for the structural drawings/computations — use the value or bar callout from the approved design.'));
   const c = document.createElement('div'); c.className='card';
   c.innerHTML = `
     <h2>Provided vs required Ast</h2>
     ${clauseTag('Ref. AS 3600:2018 Section 8/9')}
-    <label>Bar size installed</label>
-    <select id="acBar">${BARS.map(b=>`<option value="${b.size}">N${b.size}</option>`).join('')}</select>
-    <label>Spacing as installed (mm c/c)</label>
-    <input type="number" id="acSpacing" inputmode="decimal" placeholder="e.g. 200" value="200">
-    <label>Design Ast required (mm²/m)</label>
-    <input type="number" id="acReq" inputmode="decimal" placeholder="e.g. 550" value="550">
+
+    <label>Reinforcement provided as</label>
+    <div class="seg" id="acProvMode">
+      <button class="on" data-v="spacing">Bar size @ spacing</button>
+      <button data-v="count">Number of bars</button>
+    </div>
+
+    <div id="acProvSpacing">
+      <label>Bar size installed</label>
+      <select id="acBar">${BARS.map(b=>`<option value="${b.size}">N${b.size}</option>`).join('')}</select>
+      <label>Spacing as installed (mm c/c)</label>
+      <input type="number" id="acSpacing" inputmode="decimal" placeholder="e.g. 200" value="200">
+    </div>
+    <div id="acProvCount" style="display:none;">
+      <label>Number of bars — e.g. 2 for 2/N20</label>
+      <input type="number" id="acCount" inputmode="decimal" placeholder="e.g. 2" value="2">
+      <label>Bar size</label>
+      <select id="acBarCount">${BARS.map(b=>`<option value="${b.size}">N${b.size}</option>`).join('')}</select>
+    </div>
+
+    <label style="margin-top:18px;">Compare against</label>
+    <div class="seg" id="acCompMode">
+      <button class="on" data-v="value">Enter Ast value</button>
+      <button data-v="ref">Bar size &amp; spacing</button>
+    </div>
+
+    <div id="acCompValue">
+      <label id="acReqLabel">Design Ast required (mm²/m)</label>
+      <input type="number" id="acReq" inputmode="decimal" placeholder="e.g. 550" value="550">
+    </div>
+    <div id="acCompRef" style="display:none;"></div>
+
     <div class="result" id="acResult"></div>`;
   main.appendChild(c);
-  const bar = c.querySelector('#acBar'), sp = c.querySelector('#acSpacing'), req = c.querySelector('#acReq'), out = c.querySelector('#acResult');
-  function calc(){
-    const b = BARS.find(x=>x.size==bar.value);
-    const spacing = parseFloat(sp.value)||0;
-    const reqVal = parseFloat(req.value)||0;
-    if(spacing<=0){ out.innerHTML = '<div class="hint">Enter a spacing greater than zero.</div>'; return; }
-    const provided = providedAst(b.area, spacing);
-    const pass = provided >= reqVal;
-    out.innerHTML = `
-      <div class="label">Provided Ast</div>
-      <div class="big">${provided.toFixed(0)} mm²/m</div>
-      <div class="verdict ${pass?'ok':'bad'}">${pass ? 'PASS — provided ≥ required' : 'FAIL — provided < required'}</div>
-      <div class="subresult"><span>Required Ast</span><span>${reqVal || 0} mm²/m</span></div>
-      <div class="subresult"><span>Margin</span><span>${(provided-reqVal>=0?'+':'')}${(provided-reqVal).toFixed(0)} mm²/m (${reqVal?((provided/reqVal-1)*100).toFixed(1):'—'}%)</span></div>`;
+
+  const provModeSeg = c.querySelector('#acProvMode');
+  const provSpacingBox = c.querySelector('#acProvSpacing');
+  const provCountBox = c.querySelector('#acProvCount');
+  const bar = c.querySelector('#acBar'), sp = c.querySelector('#acSpacing');
+  const count = c.querySelector('#acCount'), barCount = c.querySelector('#acBarCount');
+
+  const compModeSeg = c.querySelector('#acCompMode');
+  const compValueBox = c.querySelector('#acCompValue');
+  const compRefBox = c.querySelector('#acCompRef');
+  const reqLabel = c.querySelector('#acReqLabel');
+  const req = c.querySelector('#acReq');
+
+  const out = c.querySelector('#acResult');
+  let provMode = 'spacing', compMode = 'value';
+
+  function buildCompRefFields(){
+    if(provMode==='spacing'){
+      compRefBox.innerHTML = `
+        <label>Design bar size</label>
+        <select id="acRefBar">${BARS.map(b=>`<option value="${b.size}">N${b.size}</option>`).join('')}</select>
+        <label>Design spacing (mm c/c)</label>
+        <input type="number" id="acRefSpacing" inputmode="decimal" value="200">`;
+    } else {
+      compRefBox.innerHTML = `
+        <label>Design number of bars</label>
+        <input type="number" id="acRefCount" inputmode="decimal" value="2">
+        <label>Design bar size</label>
+        <select id="acRefBar">${BARS.map(b=>`<option value="${b.size}">N${b.size}</option>`).join('')}</select>`;
+    }
+    compRefBox.querySelectorAll('select,input').forEach(el=>el.addEventListener('input',calc));
   }
-  [bar,sp,req].forEach(el=>el.addEventListener('input',calc));
+
+  provModeSeg.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    provMode = b.dataset.v;
+    [...provModeSeg.children].forEach(x=>x.classList.toggle('on', x===b));
+    provSpacingBox.style.display = provMode==='spacing' ? 'block':'none';
+    provCountBox.style.display = provMode==='count' ? 'block':'none';
+    compModeSeg.querySelector('[data-v="ref"]').textContent = provMode==='spacing' ? 'Bar size & spacing' : 'Bar size & count';
+    reqLabel.textContent = `Design Ast required (${provMode==='spacing' ? 'mm²/m' : 'mm²'})`;
+    if(compMode==='ref') buildCompRefFields();
+    calc();
+  });
+
+  compModeSeg.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    compMode = b.dataset.v;
+    [...compModeSeg.children].forEach(x=>x.classList.toggle('on', x===b));
+    compValueBox.style.display = compMode==='value' ? 'block':'none';
+    compRefBox.style.display = compMode==='ref' ? 'block':'none';
+    if(compMode==='ref') buildCompRefFields();
+    calc();
+  });
+
+  function getProvided(){
+    if(provMode==='spacing'){
+      const b = BARS.find(x=>x.size==bar.value);
+      const spacing = parseFloat(sp.value)||0;
+      if(spacing<=0) return null;
+      return {value: providedAst(b.area, spacing), unit:'mm²/m', desc:`N${b.size} @ ${spacing} mm c/c`};
+    } else {
+      const n = parseFloat(count.value)||0;
+      const b = BARS.find(x=>x.size==barCount.value);
+      if(n<=0) return null;
+      return {value: n*b.area, unit:'mm²', desc:`${n}/N${b.size}`};
+    }
+  }
+  function getRequired(){
+    if(compMode==='value'){
+      const v = parseFloat(req.value)||0;
+      return {value:v, unit: provMode==='spacing' ? 'mm²/m':'mm²', desc:'entered value'};
+    }
+    const refBar = compRefBox.querySelector('#acRefBar');
+    if(!refBar) return null;
+    const b = BARS.find(x=>x.size==refBar.value);
+    if(provMode==='spacing'){
+      const refSp = compRefBox.querySelector('#acRefSpacing');
+      const spacing = parseFloat(refSp.value)||0;
+      if(spacing<=0) return null;
+      return {value: providedAst(b.area, spacing), unit:'mm²/m', desc:`N${b.size} @ ${spacing} mm c/c`};
+    } else {
+      const refCount = compRefBox.querySelector('#acRefCount');
+      const n = parseFloat(refCount.value)||0;
+      if(n<=0) return null;
+      return {value: n*b.area, unit:'mm²', desc:`${n}/N${b.size}`};
+    }
+  }
+
+  function calc(){
+    const provided = getProvided();
+    const required = getRequired();
+    if(!provided){ out.innerHTML = '<div class="hint">Enter a valid spacing / bar count greater than zero.</div>'; return; }
+    if(!required){ out.innerHTML = '<div class="hint">Enter a valid comparison value.</div>'; return; }
+    const pass = provided.value >= required.value;
+    const margin = provided.value - required.value;
+    out.innerHTML = `
+      <div class="label">Provided Ast (${provided.desc})</div>
+      <div class="big">${provided.value.toFixed(0)} ${provided.unit}</div>
+      <div class="verdict ${pass?'ok':'bad'}">${pass ? 'PASS — provided ≥ required' : 'FAIL — provided < required'}</div>
+      <div class="subresult"><span>Required (${required.desc})</span><span>${required.value.toFixed(0)} ${required.unit}</span></div>
+      <div class="subresult"><span>Margin</span><span>${(margin>=0?'+':'')}${margin.toFixed(0)} ${provided.unit} (${required.value?((provided.value/required.value-1)*100).toFixed(1):'—'}%)</span></div>`;
+  }
+  [bar,sp,count,barCount,req].forEach(el=>el.addEventListener('input',calc));
   calc();
 }
 
@@ -572,27 +717,73 @@ function renderSpacingCalc(main){
   c.innerHTML = `
     <h2>Required bar spacing</h2>
     ${clauseTag('Spacing = 1000 × bar area ÷ target Ast')}
-    <label>Bar size</label>
+
+    <label>Target reinforcement given as</label>
+    <div class="seg" id="scTargetMode">
+      <button class="on" data-v="ref">Bar size &amp; spacing</button>
+      <button data-v="value">Ast value</button>
+    </div>
+    <div id="scTargetRef">
+      <label>Design bar size</label>
+      <select id="scRefBar">${BARS.map(b=>`<option value="${b.size}">N${b.size}</option>`).join('')}</select>
+      <label>Design spacing (mm c/c)</label>
+      <input type="number" id="scRefSpacing" inputmode="decimal" value="200">
+    </div>
+    <div id="scTargetValue" style="display:none;">
+      <label>Target Ast (mm²/m)</label>
+      <input type="number" id="scTarget" inputmode="decimal" value="550">
+    </div>
+
+    <label style="margin-top:18px;">Bar size to install</label>
     <select id="scBar">${BARS.map(b=>`<option value="${b.size}">N${b.size}</option>`).join('')}</select>
-    <label>Target Ast (mm²/m)</label>
-    <input type="number" id="scTarget" inputmode="decimal" value="550">
+
     <div class="result" id="scResult"></div>`;
   main.appendChild(c);
-  const bar = c.querySelector('#scBar'), target = c.querySelector('#scTarget'), out = c.querySelector('#scResult');
+
+  const targetModeSeg = c.querySelector('#scTargetMode');
+  const targetRefBox = c.querySelector('#scTargetRef');
+  const targetValueBox = c.querySelector('#scTargetValue');
+  const refBar = c.querySelector('#scRefBar'), refSpacing = c.querySelector('#scRefSpacing');
+  const target = c.querySelector('#scTarget');
+  const bar = c.querySelector('#scBar'), out = c.querySelector('#scResult');
+  let targetMode = 'ref';
+
+  targetModeSeg.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    targetMode = b.dataset.v;
+    [...targetModeSeg.children].forEach(x=>x.classList.toggle('on', x===b));
+    targetRefBox.style.display = targetMode==='ref' ? 'block':'none';
+    targetValueBox.style.display = targetMode==='value' ? 'block':'none';
+    calc();
+  });
+
+  function getTargetAst(){
+    if(targetMode==='value'){
+      const t = parseFloat(target.value)||0;
+      return t>0 ? {value:t, desc:'entered value'} : null;
+    }
+    const b = BARS.find(x=>x.size==refBar.value);
+    const spacing = parseFloat(refSpacing.value)||0;
+    if(spacing<=0) return null;
+    return {value: providedAst(b.area, spacing), desc:`N${b.size} @ ${spacing} mm c/c`};
+  }
+
   function calc(){
+    const t = getTargetAst();
+    if(!t){ out.innerHTML = '<div class="hint">Enter a target greater than zero.</div>'; return; }
     const b = BARS.find(x=>x.size==bar.value);
-    const t = parseFloat(target.value)||0;
-    if(t<=0){ out.innerHTML = '<div class="hint">Enter a target Ast greater than zero.</div>'; return; }
-    const exact = b.area*1000/t;
+    const exact = b.area*1000/t.value;
     const practical = round5(Math.floor(exact/5)*5);
     const practicalAst = providedAst(b.area, practical);
     out.innerHTML = `
-      <div class="label">Exact spacing required</div>
-      <div class="big">${exact.toFixed(0)} mm c/c</div>
+      <div class="label">Target Ast (${t.desc})</div>
+      <div class="subresult" style="border-top:none; padding-top:0;"><span>Required Ast</span><span>${t.value.toFixed(0)} mm²/m</span></div>
+      <div class="big" style="margin-top:10px;">${exact.toFixed(0)} mm c/c</div>
+      <div class="label" style="margin-top:2px;">Exact spacing required — N${b.size}</div>
       <div class="subresult"><span>Practical spacing (round down, 5 mm)</span><span>${practical} mm c/c</span></div>
       <div class="subresult"><span>Ast at practical spacing</span><span>${practicalAst.toFixed(0)} mm²/m</span></div>`;
   }
-  [bar,target].forEach(el=>el.addEventListener('input',calc));
+  [refBar,refSpacing,target,bar].forEach(el=>el.addEventListener('input',calc));
   calc();
 }
 
@@ -742,7 +933,7 @@ function renderCoverGuide(main){
     item.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
         <b style="font-size:14px;">${row.env}</b>
-        <span style="font-family:var(--mono); color:var(--amber); font-weight:700; font-size:15px; white-space:nowrap;">${row.cover}</span>
+        <span style="font-family:var(--mono); color:var(--amber-ink); font-weight:700; font-size:15px; white-space:nowrap;">${row.cover}</span>
       </div>
       <div class="pillrow"><span class="pl">Exposure: ${row.ec}</span><span class="pl">${row.fc}</span></div>
       <div style="font-size:12px; color:var(--text-dim); margin-top:6px; line-height:1.5;">${row.note}</div>`;
@@ -799,10 +990,13 @@ function loadChk(){
 }
 function saveChk(data){ try{ localStorage.setItem(CHK_KEY, JSON.stringify(data)); }catch(e){} }
 
+function genId(){ return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7); }
+
 function renderChecklist(main){
   let data = loadChk();
   if(!data.items) data.items = {};
   if(!data.meta) data.meta = {project:'', location:'', date:''};
+  if(!data.custom) data.custom = {};
 
   const metaCard = document.createElement('div'); metaCard.className='card';
   metaCard.innerHTML = `
@@ -863,6 +1057,54 @@ function renderChecklist(main){
       });
       gEl.appendChild(item);
     });
+
+    if(!data.custom[group.name]) data.custom[group.name] = [];
+    data.custom[group.name].forEach(entry=>{
+      const item = document.createElement('div'); item.className='chk-item';
+      item.innerHTML = `
+        <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:10px;">
+          <input type="text" class="custom-label" placeholder="Enter checklist item…" value="${(entry.text||'').replace(/"/g,'&quot;')}" style="flex:1; padding:10px 12px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:14px; font-family:var(--sans); font-weight:600;">
+          <button class="custom-del" aria-label="Delete item" style="flex-shrink:0; width:40px; height:40px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fail); font-size:16px; font-weight:700;">✕</button>
+        </div>
+        <div class="status-btns">
+          <button data-s="pass" class="pass ${entry.status==='pass'?'on':''}">PASS</button>
+          <button data-s="fail" class="fail ${entry.status==='fail'?'on':''}">FAIL</button>
+          <button data-s="hold" class="hold ${entry.status==='hold'?'on':''}">HOLD</button>
+        </div>
+        <textarea placeholder="Notes (optional)">${entry.notes||''}</textarea>`;
+      item.querySelector('.custom-label').addEventListener('input', e=>{
+        entry.text = e.target.value; saveChk(data);
+      });
+      item.querySelector('.custom-del').addEventListener('click', ()=>{
+        if(confirm('Remove this checklist item?')){
+          data.custom[group.name] = data.custom[group.name].filter(x=>x.id!==entry.id);
+          saveChk(data);
+          render();
+        }
+      });
+      item.querySelector('.status-btns').addEventListener('click', e=>{
+        const b = e.target.closest('button'); if(!b) return;
+        entry.status = (entry.status===b.dataset.s) ? null : b.dataset.s;
+        saveChk(data);
+        item.querySelectorAll('.status-btns button').forEach(x=>x.classList.toggle('on', x.dataset.s===entry.status));
+        updateSummary();
+      });
+      item.querySelector('textarea').addEventListener('input', e=>{
+        entry.notes = e.target.value; saveChk(data);
+      });
+      gEl.appendChild(item);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn'; addBtn.style.cssText = 'width:100%; margin-top:2px;';
+    addBtn.textContent = '+ Add item';
+    addBtn.addEventListener('click', ()=>{
+      data.custom[group.name].push({id:genId(), text:'', status:null, notes:''});
+      saveChk(data);
+      render();
+    });
+    gEl.appendChild(addBtn);
+
     main.appendChild(gEl);
   });
 
@@ -879,11 +1121,17 @@ function renderChecklist(main){
 
   function updateSummary(){
     let pass=0, fail=0, hold=0, total=0;
-    CHECKLIST_GROUPS.forEach(g=>g.items.forEach((q,i)=>{
-      total++;
-      const s = (data.items[itemKey(g.name,i)]||{}).status;
-      if(s==='pass') pass++; else if(s==='fail') fail++; else if(s==='hold') hold++;
-    }));
+    CHECKLIST_GROUPS.forEach(g=>{
+      g.items.forEach((q,i)=>{
+        total++;
+        const s = (data.items[itemKey(g.name,i)]||{}).status;
+        if(s==='pass') pass++; else if(s==='fail') fail++; else if(s==='hold') hold++;
+      });
+      (data.custom[g.name]||[]).forEach(entry=>{
+        total++;
+        if(entry.status==='pass') pass++; else if(entry.status==='fail') fail++; else if(entry.status==='hold') hold++;
+      });
+    });
     summary.innerHTML = `
       <div class="pill pass"><div class="n">${pass}</div><div class="l">Pass</div></div>
       <div class="pill fail"><div class="n">${fail}</div><div class="l">Fail</div></div>
@@ -895,7 +1143,7 @@ function renderChecklist(main){
 
 function exportChecklist(data){
   let lines = [];
-  lines.push('SITECHECK RC — PRE-POUR CHECKLIST');
+  lines.push('CONCRETE COMPANION — PRE-POUR CHECKLIST');
   lines.push(`Project: ${data.meta.project||'—'}`);
   lines.push(`Location: ${data.meta.location||'—'}`);
   lines.push(`Date: ${data.meta.date||'—'}`);
@@ -905,6 +1153,10 @@ function exportChecklist(data){
     g.items.forEach((q,i)=>{
       const e = data.items[g.name+'::'+i] || {};
       lines.push(`[${(e.status||'OPEN').toUpperCase()}] ${q}${e.notes?' — '+e.notes:''}`);
+    });
+    (data.custom[g.name]||[]).forEach(entry=>{
+      if(!entry.text && !entry.status && !entry.notes) return;
+      lines.push(`[${(entry.status||'OPEN').toUpperCase()}] ${entry.text||'(untitled item)'}${entry.notes?' — '+entry.notes:''}`);
     });
     lines.push('');
   });
@@ -922,6 +1174,30 @@ function fallbackCopy(text){
     alert(text);
   });
 }
+
+/* =====================================================================
+   THEME
+===================================================================== */
+const THEME_KEY = 'concrete_companion_theme';
+const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12H5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>';
+const MOON_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>';
+
+function applyTheme(t){
+  if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  localStorage.setItem(THEME_KEY, t);
+  const btn = document.getElementById('themeToggle');
+  if(btn) btn.innerHTML = (t==='dark') ? SUN_ICON : MOON_ICON; // icon shows what tapping switches TO... actually shows current-mode icon
+}
+function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY) || 'light';
+  applyTheme(saved);
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    const cur = document.documentElement.getAttribute('data-theme')==='dark' ? 'dark':'light';
+    applyTheme(cur==='dark' ? 'light' : 'dark');
+  });
+}
+initTheme();
 
 /* =====================================================================
    INIT

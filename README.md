@@ -1,7 +1,21 @@
-# SiteCheck RC — Concrete Site Inspection Companion
+# Concrete Companion v1.0 — Concrete Site Inspection Companion
 
 A installable, offline-capable PWA covering reinforcement reference/calculators and concrete
 inspection tools, referenced to **AS 3600:2018**. Designed for one-tap access from an NFC tag.
+
+> Folder/repo name can stay `sitecheck-rc` (or whatever you already created) — only the
+> in-app name and icon changed, so your existing GitHub Pages URL and NFC tag still work.
+
+## What's new in this version
+- **Ast Check** now accepts reinforcement as either "bar size @ spacing" or "number of bars"
+  (e.g. `2/N20`), and the comparison target can be a raw Ast value **or** a design bar size &
+  spacing/count — matching how reinforcement is usually called up on drawings.
+- **Spacing Calculator** now takes its target as a bar size & spacing by default (Ast is derived
+  automatically), with the option to switch back to a raw Ast value.
+- **Light theme is now the default** (better for direct sunlight), with a toggle in the header to
+  switch to dark. Your choice is remembered on the device.
+- **Pre-pour checklist** now supports adding your own custom items per section (with delete),
+  alongside the built-in items.
 
 ## What's in this folder
 
