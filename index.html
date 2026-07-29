@@ -997,6 +997,7 @@ function renderChecklist(main){
   if(!data.items) data.items = {};
   if(!data.meta) data.meta = {project:'', location:'', date:''};
   if(!data.custom) data.custom = {};
+  if(!data.hidden) data.hidden = {};
 
   const metaCard = document.createElement('div'); metaCard.className='card';
   metaCard.innerHTML = `
@@ -1028,18 +1029,30 @@ function renderChecklist(main){
   CHECKLIST_GROUPS.forEach(group=>{
     const gEl = document.createElement('div'); gEl.className='chk-group';
     gEl.innerHTML = `<h2>${group.name}</h2>`;
+    let hiddenCount = 0;
     group.items.forEach((q,i)=>{
       const key = itemKey(group.name,i);
+      if(data.hidden[key]){ hiddenCount++; return; }
       const entry = data.items[key] || {status:null, notes:''};
       const item = document.createElement('div'); item.className='chk-item';
       item.innerHTML = `
-        <div class="q">${q}</div>
+        <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:10px;">
+          <div class="q" style="flex:1; margin-bottom:0;">${q}</div>
+          <button class="std-del" aria-label="Delete item" style="flex-shrink:0; width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--fail); font-size:14px; font-weight:700; line-height:1;">✕</button>
+        </div>
         <div class="status-btns">
           <button data-s="pass" class="pass ${entry.status==='pass'?'on':''}">PASS</button>
           <button data-s="fail" class="fail ${entry.status==='fail'?'on':''}">FAIL</button>
           <button data-s="hold" class="hold ${entry.status==='hold'?'on':''}">HOLD</button>
         </div>
         <textarea placeholder="Notes (optional)">${entry.notes||''}</textarea>`;
+      item.querySelector('.std-del').addEventListener('click', ()=>{
+        if(confirm('Remove this item from the checklist? You can restore it later from this section.')){
+          data.hidden[key] = true;
+          saveChk(data);
+          render();
+        }
+      });
       item.querySelector('.status-btns').addEventListener('click', e=>{
         const b = e.target.closest('button'); if(!b) return;
         const cur = data.items[key] || {status:null, notes:''};
@@ -1057,6 +1070,18 @@ function renderChecklist(main){
       });
       gEl.appendChild(item);
     });
+
+    if(hiddenCount>0){
+      const restore = document.createElement('button');
+      restore.className = 'btn'; restore.style.cssText = 'width:100%; margin-bottom:10px; font-size:12px; padding:9px;';
+      restore.textContent = `Restore ${hiddenCount} removed item${hiddenCount>1?'s':''}`;
+      restore.addEventListener('click', ()=>{
+        group.items.forEach((q,i)=>{ delete data.hidden[itemKey(group.name,i)]; });
+        saveChk(data);
+        render();
+      });
+      gEl.appendChild(restore);
+    }
 
     if(!data.custom[group.name]) data.custom[group.name] = [];
     data.custom[group.name].forEach(entry=>{
@@ -1123,6 +1148,7 @@ function renderChecklist(main){
     let pass=0, fail=0, hold=0, total=0;
     CHECKLIST_GROUPS.forEach(g=>{
       g.items.forEach((q,i)=>{
+        if(data.hidden[itemKey(g.name,i)]) return;
         total++;
         const s = (data.items[itemKey(g.name,i)]||{}).status;
         if(s==='pass') pass++; else if(s==='fail') fail++; else if(s==='hold') hold++;
@@ -1151,6 +1177,7 @@ function exportChecklist(data){
   CHECKLIST_GROUPS.forEach(g=>{
     lines.push(`## ${g.name}`);
     g.items.forEach((q,i)=>{
+      if(data.hidden[g.name+'::'+i]) return;
       const e = data.items[g.name+'::'+i] || {};
       lines.push(`[${(e.status||'OPEN').toUpperCase()}] ${q}${e.notes?' — '+e.notes:''}`);
     });
